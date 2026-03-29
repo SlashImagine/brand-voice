@@ -66,21 +66,19 @@ nav {
   color: var(--text);
   letter-spacing: -0.02em;
 }
-.star-btn {
+.star-btn-wrap {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 16px;
-  border: 1px solid var(--border-2);
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--muted);
-  transition: all 0.15s;
-  background: var(--surface);
 }
-.star-btn:hover { border-color: var(--accent-border); color: var(--text); background: var(--accent-dim); }
-.star-btn svg { color: #f59e0b; }
+.star-btn-wrap iframe {
+  border-radius: 6px;
+  overflow: hidden;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.star-btn-wrap iframe:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+}
 
 /* ── Hero ── */
 .hero {
