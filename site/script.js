@@ -3,7 +3,7 @@
 // Terminal typewriter
 const SEQUENCES = [
   {
-    cmd: "$ npx voiceprint https://liquiddeath.com",
+    cmd: "$ npx voiceprint https://liquiddeath.com --voice",
     lines: [
       "",
       "  🎙️  Brand Voice Profile: Liquid Death",
@@ -27,7 +27,7 @@ const SEQUENCES = [
     }
   },
   {
-    cmd: "$ npx voiceprint https://stripe.com --analytics",
+    cmd: "$ npx voiceprint https://stripe.com",
     lines: [
       "",
       "  🎙️  Brand Voice Profile: Stripe",
