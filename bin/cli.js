@@ -7,16 +7,16 @@ const help = `
   voiceprint — reverse-engineer any brand voice. instantly.
 
   Usage:
-    voiceprint <url>                           Analyze a website's brand voice
-    voiceprint <url> --voice                   Generate a deployable VOICE.md
+    voiceprint <url>                           Generate a deployable VOICE.md
+    voiceprint <url> --report                  Full analysis report instead
     voiceprint <url> --format json             Output as JSON
     voiceprint <url> --pages 10                Crawl up to 10 pages (default: 8)
     voiceprint <url> --output VOICE.md         Save to file
     voiceprint compare <url1> <url2>           Compare two brands side-by-side
 
   Options:
-    --voice         Generate a deployable VOICE.md (the killer feature)
-    --format, -f    Output format: markdown (default) | json | voice
+    --report        Full analysis report (default is VOICE.md)
+    --format, -f    Output format: voice (default) | markdown | json
     --pages, -p     Max pages to crawl (default: 8, max: 20)
     --output, -o    Write output to file instead of stdout
     --verbose, -v   Show crawling progress
@@ -24,9 +24,10 @@ const help = `
     --version       Show version
 
   Examples:
-    voiceprint https://liquiddeath.com --voice
-    voiceprint https://stripe.com --voice --output VOICE.md
-    voiceprint https://notion.so --pages 10 --format json
+    voiceprint https://liquiddeath.com
+    voiceprint https://stripe.com --output VOICE.md
+    voiceprint https://notion.so --report
+    voiceprint https://notion.so --format json
     voiceprint compare https://stripe.com https://square.com
 
   https://github.com/SlashImagine/brand-voice
@@ -36,8 +37,8 @@ try {
   const { values, positionals } = parseArgs({
     allowPositionals: true,
     options: {
-      format: { type: "string", short: "f", default: "markdown" },
-      voice: { type: "boolean", default: false },
+      format: { type: "string", short: "f", default: "voice" },
+      report: { type: "boolean", default: false },
       pages: { type: "string", short: "p", default: "8" },
       output: { type: "string", short: "o" },
       verbose: { type: "boolean", short: "v", default: false },
@@ -57,8 +58,8 @@ try {
     process.exit(0);
   }
 
-  // --voice flag overrides format
-  const format = values.voice ? "voice" : values.format;
+  // --report flag overrides to markdown report
+  const format = values.report ? "markdown" : values.format;
 
   const isCompare = positionals[0] === "compare";
   const urls = isCompare ? positionals.slice(1) : [positionals[0]];

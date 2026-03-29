@@ -13,19 +13,19 @@ Zero API keys. Zero dependencies. Zero cost.
 ## Quick Start
 
 ```bash
-npx voiceprint https://liquiddeath.com --voice
+npx voiceprint https://liquiddeath.com
 ```
 
 That's it. You get a complete `VOICE.md` — drop it into any AI chat, agent, or system prompt.
 
 ## The Output
 
-### `--voice` — A deployable VOICE.md (the killer feature)
+### Default — A deployable VOICE.md
 
 Not a report. An operating manual. Drop it into any project and your AI writes as that brand.
 
 ```bash
-voiceprint https://liquiddeath.com --voice --output VOICE.md
+voiceprint https://liquiddeath.com --output VOICE.md
 ```
 
 Includes:
@@ -37,10 +37,10 @@ Includes:
 - **Voice test** — 4-question checklist before publishing
 - **System prompt** — copy-paste into any LLM
 
-### Default — Full analysis report
+### `--report` — Full analysis report
 
 ```bash
-voiceprint https://stripe.com
+voiceprint https://stripe.com --report
 ```
 
 ```
@@ -106,8 +106,8 @@ voiceprint doesn't just scrape the homepage:
 
 | Flag | Description |
 |------|-------------|
-| `--voice` | Generate a deployable VOICE.md |
-| `--format, -f` | Output format: `markdown` (default) \| `json` \| `voice` |
+| `--report` | Full analysis report instead of VOICE.md |
+| `--format, -f` | Output format: `voice` (default) \| `markdown` \| `json` |
 | `--pages, -p` | Max pages to crawl (default: 8, max: 20) |
 | `--output, -o` | Write to file instead of stdout |
 | `--verbose, -v` | Show crawling progress |
