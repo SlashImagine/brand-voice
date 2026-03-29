@@ -1,159 +1,150 @@
-# 🎙️ brand-voice
+# 🎙️ voiceprint
 
-**Reverse-engineer any brand's voice from their website. Get an AI-ready brand voice guide in seconds.**
+**Reverse-engineer any brand voice. Instantly.**
 
-Every marketer using AI to write copy faces the same problem: the output sounds generic. The fix is a brand voice guide — but building one manually takes hours of reading, analyzing, and documenting.
+Point it at any URL. Get a deployable `VOICE.md` in seconds — archetypes, tone spectrum, vocabulary DNA, and a copy-paste AI prompt that makes any LLM write indistinguishably in that brand's voice.
 
-`brand-voice` does it in seconds. Point it at any URL, and it crawls the site, analyzes the writing patterns, and produces a complete brand voice profile with tone dimensions, personality archetypes, vocabulary DNA, do/don't guidelines, and a **copy-paste AI prompt** that makes ChatGPT, Claude, or any LLM write in that brand's voice.
+Zero API keys. Zero dependencies. Zero cost.
 
-Zero API keys. Zero dependencies. Just `npx` and go.
+🌐 **[Website](https://slashimagine.github.io/brand-voice/)** · 📦 **[npm](https://www.npmjs.com/package/voiceprint)**
+
+---
 
 ## Quick Start
 
 ```bash
-npx brand-voice https://stripe.com
+npx voiceprint https://liquiddeath.com --voice
 ```
 
-That's it. You'll get a full brand voice profile printed to your terminal.
+That's it. You get a complete `VOICE.md` — drop it into any AI chat, agent, or system prompt.
 
-## What You Get
+## The Output
 
-### 🎯 Tone Spectrum (8 dimensions, scored 1–10)
+### `--voice` — A deployable VOICE.md (the killer feature)
 
-| Dimension | Score |
-|-----------|-------|
-| Formal ◼◼◼◼◼◻◻◻◻◻ Casual | 5.2/10 |
-| Serious ◼◼◼◼◻◻◻◻◻◻ Playful | 4.2/10 |
-| Technical ◼◼◼◻◻◻◻◻◻◻ Accessible | 2.5/10 |
-| Reserved ◼◼◼◼◼◻◻◻◻◻ Enthusiastic | 4.5/10 |
-| Corporate ◼◼◼◼◼◼◻◻◻◻ Human | 6.2/10 |
-| Passive ◼◼◼◼◼◼◼◻◻◻ Active | 6.8/10 |
-
-### 🧬 Personality Archetypes
-
-Automatically classified as The Friend, The Expert, The Coach, The Storyteller, The Analyst, The Minimalist, The Doer, or The Cheerleader.
-
-### 📊 Vocabulary DNA
-
-Power words, jargon detection, vocabulary richness score, and average word length.
-
-### ✅ Do / ❌ Don't Guidelines
-
-Actionable writing rules derived directly from the brand's actual patterns.
-
-### 🤖 AI Prompt (Copy & Paste)
-
-A ready-to-use system prompt that makes any LLM write in the brand's voice:
-
-```
-You are writing as Stripe. Your voice is technical, warm, detailed.
-Tone: more technical, more active, more specific.
-Reading level: middle school (avg 21 words/sentence).
-Avoid contractions.
-Stay focused and substantive.
-Be measured and confident.
-Maintain professional polish.
-Key vocabulary: stripe, payments, billing, commerce, agents.
-Channel the personality of: The Coach.
-```
-
-## Usage
-
-### Basic analysis
+Not a report. An operating manual. Drop it into any project and your AI writes as that brand.
 
 ```bash
-npx brand-voice https://notion.so
+voiceprint https://liquiddeath.com --voice --output VOICE.md
 ```
 
-### Crawl more pages for deeper analysis
+Includes:
+- **Identity** — archetypes, traits, one-liner
+- **Tone spectrum** — "extremely irreverent (9.5/10)", "notably playful (7.6/10)"
+- **Writing rules** — sentence structure, vocabulary targets, reading level
+- **Do/Don't guidelines** — specific to the brand, not generic advice
+- **Brand-specific patterns** — dark humor, profanity, death themes, ALL CAPS as style
+- **Voice test** — 4-question checklist before publishing
+- **System prompt** — copy-paste into any LLM
+
+### Default — Full analysis report
 
 ```bash
-npx brand-voice https://stripe.com --pages 5
+voiceprint https://stripe.com
 ```
 
-### JSON output (for pipelines, scripts, or databases)
+```
+🎙️ Brand Voice Profile: Stripe
+
+> Stripe speaks as The Coach + The Doer — technical, warm, detailed.
+
+Tone Spectrum:
+  Formal         ◼◼◼◼◼◼◻◻◻◻ Casual          5.6/10
+  Technical      ◼◼◼◻◻◻◻◻◻◻ Accessible      2.5/10
+  Conventional   ◼◼◼◼◻◻◻◻◻◻ Irreverent      4.1/10
+  Safe           ◼◼◼◻◻◻◻◻◻◻ Provocative     3.0/10
+
+Personality:
+  Archetypes: The Coach, The Doer
+  Traits: technical, warm, detailed
+```
+
+### Compare — Side-by-side brand diff
 
 ```bash
-npx brand-voice https://linear.app --format json
+voiceprint compare https://stripe.com https://liquiddeath.com
 ```
 
-### Save to file
+See exactly where two brands diverge across all 10 tone dimensions.
+
+### JSON — For pipelines
 
 ```bash
-npx brand-voice https://vercel.com --output vercel-voice.md
+voiceprint https://notion.so --format json --output notion.json
 ```
 
-### Compare two brands side-by-side
+## 10-Dimension Tone Spectrum
 
-```bash
-npx brand-voice compare https://stripe.com https://square.com
-```
+| Dimension | What it measures |
+|-----------|-----------------|
+| Formal ↔ Casual | Contractions, slang, register |
+| Serious ↔ Playful | Humor, wit, entertainment value |
+| Technical ↔ Accessible | Jargon density, complexity |
+| Reserved ↔ Enthusiastic | Energy, superlatives, exclamations |
+| Corporate ↔ Human | "Synergy" vs "you and me" |
+| Passive ↔ Active | Voice construction |
+| Vague ↔ Specific | Numbers, data, concrete claims |
+| Long-winded ↔ Concise | Sentence length, economy |
+| Conventional ↔ Irreverent | Profanity, subversion, punk energy |
+| Safe ↔ Provocative | Dark humor, shock value, edge |
 
-### Verbose mode (see crawling progress)
+## 12 Personality Archetypes
 
-```bash
-npx brand-voice https://figma.com --verbose
-```
+The Friend · The Expert · The Cheerleader · The Storyteller · The Analyst · The Coach · The Minimalist · The Doer · **The Rebel** · **The Jester** · **The Provocateur** · **The Maverick** · **The Sage**
+
+## Smart Crawling
+
+voiceprint doesn't just scrape the homepage:
+
+- **Prioritizes voice-rich pages** — /about, /story, /mission, /manifesto, /blog
+- **Semantic zone weighting** — hero copy 3x, headings 2x, nav/footer 0x
+- **Content deduplication** — catches locale variants with identical content
+- **Auto-seeds** common voice paths when link discovery fails
+- Default **8 pages** (configurable up to 20)
+
+## Options
+
+| Flag | Description |
+|------|-------------|
+| `--voice` | Generate a deployable VOICE.md |
+| `--format, -f` | Output format: `markdown` (default) \| `json` \| `voice` |
+| `--pages, -p` | Max pages to crawl (default: 8, max: 20) |
+| `--output, -o` | Write to file instead of stdout |
+| `--verbose, -v` | Show crawling progress |
+| `--help, -h` | Show help |
+| `--version` | Show version |
 
 ## Programmatic API
 
-```js
-import { analyzeBrandVoice, formatMarkdown } from "brand-voice";
+```javascript
+import { analyzeBrandVoice, formatVoiceFile, formatMarkdown, formatJSON } from 'voiceprint';
 
-const profile = await analyzeBrandVoice("https://stripe.com", {
-  maxPages: 5,
-  log: console.log,
-});
+const profile = await analyzeBrandVoice('https://liquiddeath.com', { maxPages: 8 });
 
-// Full profile object
-console.log(profile.tone.dimensions);
-console.log(profile.personality.archetypes);
-console.log(profile.aiPrompt);
+// Get the VOICE.md
+const voiceMd = formatVoiceFile(profile);
 
-// Or formatted output
-console.log(formatMarkdown(profile));
+// Or the full report
+const report = formatMarkdown(profile);
+
+// Or raw data
+const json = formatJSON(profile);
 ```
 
 ## How It Works
 
-1. **Crawls** the target website (homepage + internal pages, prioritizing about/blog/product pages)
-2. **Extracts** clean text content (strips scripts, styles, navigation)
-3. **Analyzes** 8 tone dimensions using linguistic heuristics (word patterns, sentence structure, vocabulary)
-4. **Derives** personality archetypes and traits from the tone profile
-5. **Generates** actionable guidelines and an AI-ready prompt
+1. **Crawl** — Fetches up to 20 pages, prioritizing voice-rich content (about, blog, manifesto)
+2. **Extract** — Semantic zone weighting amplifies hero copy and headings, suppresses nav/footer
+3. **Analyze** — 10-dimension tone analysis using linguistic heuristics (word patterns, sentence structure, vocabulary fingerprinting)
+4. **Classify** — Maps to personality archetypes and derives brand-specific patterns
+5. **Generate** — Produces a deployable VOICE.md with writing rules, guidelines, and AI prompts
 
-No LLM API calls. No cloud services. Everything runs locally using linguistic analysis. This means:
-- ⚡ Fast (2-5 seconds per analysis)
-- 🔒 Private (nothing leaves your machine)
-- 💰 Free (no API keys or tokens needed)
-- 🔄 Reproducible (same input → same output)
-
-## Use Cases
-
-- **Content teams**: Create a brand voice guide from your own website in seconds
-- **Agencies**: Analyze client brands before writing copy
-- **Freelancers**: Understand a new client's voice before your first draft
-- **Competitors**: Study how competitors position themselves
-- **AI workflows**: Generate system prompts for AI writing tools
-- **Brand audits**: Compare your voice across different pages or subdomains
-- **Hiring**: Give new copywriters a concrete voice reference
-
-## Options
-
-| Flag | Short | Default | Description |
-|------|-------|---------|-------------|
-| `--format` | `-f` | `markdown` | Output format: `markdown` or `json` |
-| `--pages` | `-p` | `3` | Max pages to crawl (1-10) |
-| `--output` | `-o` | stdout | Write to file |
-| `--verbose` | `-v` | `false` | Show crawling progress |
-| `--help` | `-h` | | Show help |
-| `--version` | | | Show version |
-
-## Requirements
-
-- Node.js 18+ (uses native `fetch`)
-- That's it. Zero npm dependencies.
+No AI APIs called. No data sent anywhere. Everything runs locally.
 
 ## License
 
-MIT — [Ad Machine](https://admachine.xyz)
+MIT
+
+---
+
+Built by [Ad Machine](https://admachine.xyz) · [Star on GitHub](https://github.com/SlashImagine/brand-voice)
