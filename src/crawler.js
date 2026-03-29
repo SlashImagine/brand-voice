@@ -65,7 +65,7 @@ export async function crawlSite(startUrl, opts = {}) {
       log(`Fetching ${url}`);
       const res = await fetch(url, {
         headers: {
-          "User-Agent": "voiceprint/2.0 (https://github.com/SlashImagine/voiceprint)",
+          "User-Agent": "tonethief/2.0 (https://github.com/SlashImagine/tonethief)",
           "Accept": "text/html",
         },
         redirect: "follow",

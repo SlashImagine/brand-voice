@@ -342,7 +342,16 @@ function findSignaturePhrases(text) {
   const boilerplate = /\b(add to cart|sold out|out of stock|free shipping|buy now|shop now|view cart|checkout|sign up|log in|cookie|privacy|terms of|all rights|powered by|subscribe|newsletter|follow us)\b/i;
 
   return Object.entries(phrases)
-    .filter(([phrase, count]) => count >= 2 && !boilerplate.test(phrase))
+    .filter(([phrase, count]) => {
+      if (count < 2) return false;
+      if (boilerplate.test(phrase)) return false;
+      if (/\b(add to|cart|checkout|shipping|sold|select|choose|order|subscribe|account|login|register)\b/i.test(phrase)) return false;
+      if (/[àáâãäåèéêëìíîïòóôõöùúûüñçßœæ]/.test(phrase)) return false;
+      if (/\b(fran[çc]aise|french|united states|united kingdom|republic of|cfa franc|new zealand|south africa|hong kong|saudi arabia)\b/i.test(phrase)) return false;
+      const words = phrase.split(" ");
+      if (words.filter(w => w.length <= 2).length >= words.length - 1) return false;
+      return true;
+    })
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
     .map(([phrase, count]) => ({ phrase, count }));
@@ -383,54 +392,59 @@ function estimateReadingLevel(avgSentenceLen, words) {
 function derivePersonality(tone, vocabulary, structure, text) {
   const d = Object.fromEntries(tone.dimensions.map((t) => [t.name, t.score]));
 
-  const archetypes = [];
+  // Score each archetype by strength of match, then pick top 2-3
+  const candidates = [];
 
-  // ── Original archetypes ──
-  if (d["Formal ↔ Casual"] >= 7 && d["Serious ↔ Playful"] >= 6) {
-    archetypes.push("The Friend");
-  } else if (d["Formal ↔ Casual"] <= 4 && d["Technical ↔ Accessible"] <= 4) {
-    archetypes.push("The Expert");
-  }
-
-  if (d["Reserved ↔ Enthusiastic"] >= 7) archetypes.push("The Cheerleader");
-  if (d["Corporate ↔ Human"] >= 7) archetypes.push("The Storyteller");
-  if (d["Vague ↔ Specific"] >= 7) archetypes.push("The Analyst");
-  if (structure.imperativeRatio > 0.1) archetypes.push("The Coach");
-  if (d["Long-winded ↔ Concise"] >= 7) archetypes.push("The Minimalist");
-  if (d["Passive ↔ Active"] >= 7) archetypes.push("The Doer");
-
-  // ── NEW archetypes for edgy/irreverent brands ──
-  
-  // The Rebel — anti-establishment, punk energy, breaks rules
-  if (d["Conventional ↔ Irreverent"] >= 6.5 || d["Safe ↔ Provocative"] >= 6) {
-    archetypes.push("The Rebel");
-  }
+  // The Rebel — anti-establishment, punk, irreverent
+  const rebelScore = (Math.max(0, d["Conventional ↔ Irreverent"] - 5) * 2) + (Math.max(0, d["Safe ↔ Provocative"] - 4) * 1.5);
+  if (rebelScore > 2) candidates.push({ name: "The Rebel", score: rebelScore });
 
   // The Jester — humor-first, absurdist, entertainer
-  if (d["Serious ↔ Playful"] >= 6 && (d["Conventional ↔ Irreverent"] >= 5 || d["Safe ↔ Provocative"] >= 5)) {
-    archetypes.push("The Jester");
-  }
+  const jesterScore = (Math.max(0, d["Serious ↔ Playful"] - 5) * 2) + (Math.max(0, d["Conventional ↔ Irreverent"] - 4) * 1);
+  if (jesterScore > 2) candidates.push({ name: "The Jester", score: jesterScore });
 
   // The Provocateur — shock value, bold, confrontational
-  if (d["Safe ↔ Provocative"] >= 7) {
-    archetypes.push("The Provocateur");
-  }
+  const provocScore = (Math.max(0, d["Safe ↔ Provocative"] - 5) * 3);
+  if (provocScore > 3) candidates.push({ name: "The Provocateur", score: provocScore });
 
-  // The Maverick — unconventional, rule-breaking, disruptive
-  if (d["Conventional ↔ Irreverent"] >= 6 && d["Corporate ↔ Human"] >= 6 && d["Passive ↔ Active"] >= 6) {
-    archetypes.push("The Maverick");
-  }
+  // The Maverick — unconventional, confident, disruptive
+  const mavScore = (Math.max(0, d["Conventional ↔ Irreverent"] - 5) * 1.5) + (Math.max(0, d["Passive ↔ Active"] - 5) * 1) + (Math.max(0, d["Corporate ↔ Human"] - 5) * 0.5);
+  if (mavScore > 3) candidates.push({ name: "The Maverick", score: mavScore });
 
-  // The Sage — wisdom, philosophical, mentoring (deep vocabulary + measured tone)
-  if (d["Formal ↔ Casual"] <= 5 && vocabulary.vocabularyRichness >= 0.3 && d["Vague ↔ Specific"] >= 6) {
-    archetypes.push("The Sage");
-  }
+  // The Expert — technical, precise, authoritative
+  const expertScore = (Math.max(0, 5 - d["Technical ↔ Accessible"]) * 2.5) + (Math.max(0, d["Vague ↔ Specific"] - 5) * 1) + (Math.max(0, 5 - d["Serious ↔ Playful"]) * 0.5);
+  if (expertScore > 3) candidates.push({ name: "The Expert", score: expertScore });
 
+  // The Sage — wise, deep vocabulary, specific, authoritative
+  const sageScore = (Math.max(0, 5 - d["Technical ↔ Accessible"]) * 1.5) + (vocabulary.vocabularyRichness >= 0.3 ? 2 : 0) + (Math.max(0, d["Vague ↔ Specific"] - 5) * 1.5);
+  if (sageScore > 3) candidates.push({ name: "The Sage", score: sageScore });
+
+  // The Friend — warm, casual, human
+  const friendScore = (Math.max(0, d["Formal ↔ Casual"] - 5) * 2) + (Math.max(0, d["Corporate ↔ Human"] - 5) * 1.5);
+  if (friendScore > 3) candidates.push({ name: "The Friend", score: friendScore });
+
+  // The Coach — imperative, action-oriented, direct
+  const coachScore = (structure.imperativeRatio > 0.08 ? 3 : 0) + (Math.max(0, d["Passive ↔ Active"] - 5) * 1);
+  if (coachScore > 3) candidates.push({ name: "The Coach", score: coachScore });
+
+  // The Cheerleader — enthusiastic, energetic, excited
+  const cheerScore = (Math.max(0, d["Reserved ↔ Enthusiastic"] - 5) * 2.5);
+  if (cheerScore > 3) candidates.push({ name: "The Cheerleader", score: cheerScore });
+
+  // The Minimalist — concise, restrained, every-word-earns-its-place
+  const minScore = (Math.max(0, d["Long-winded ↔ Concise"] - 5) * 2) + (Math.max(0, 5 - d["Reserved ↔ Enthusiastic"]) * 1);
+  if (minScore > 3) candidates.push({ name: "The Minimalist", score: minScore });
+
+  // The Storyteller — human, narrative-driven
+  const storyScore = (Math.max(0, d["Corporate ↔ Human"] - 5) * 2) + (Math.max(0, 5 - d["Long-winded ↔ Concise"]) * 1);
+  if (storyScore > 3) candidates.push({ name: "The Storyteller", score: storyScore });
+
+  // Sort by score, take top 3
+  candidates.sort((a, b) => b.score - a.score);
+  const archetypes = candidates.slice(0, 3).map((c) => c.name);
   if (archetypes.length === 0) archetypes.push("The Professional");
 
-  // Deduplicate
-  const uniqueArchetypes = [...new Set(archetypes)];
-
+  // Traits
   const traits = [];
   if (d["Formal ↔ Casual"] >= 6) traits.push("approachable");
   if (d["Formal ↔ Casual"] <= 4) traits.push("polished");
@@ -444,14 +458,13 @@ function derivePersonality(tone, vocabulary, structure, text) {
   if (d["Corporate ↔ Human"] <= 4) traits.push("corporate");
   if (d["Long-winded ↔ Concise"] >= 6) traits.push("concise");
   if (d["Long-winded ↔ Concise"] <= 4) traits.push("detailed");
-  // New traits
   if (d["Conventional ↔ Irreverent"] >= 6) traits.push("irreverent");
   if (d["Conventional ↔ Irreverent"] <= 3) traits.push("conventional");
   if (d["Safe ↔ Provocative"] >= 6) traits.push("provocative");
   if (d["Safe ↔ Provocative"] >= 7) traits.push("edgy");
   if (d["Serious ↔ Playful"] >= 7 && d["Conventional ↔ Irreverent"] >= 6) traits.push("absurdist");
 
-  return { archetypes: uniqueArchetypes, traits };
+  return { archetypes, traits };
 }
 
 // ── Guidelines ──────────────────────────────────────────────

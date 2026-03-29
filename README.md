@@ -1,19 +1,19 @@
-# 🎙️ voiceprint
+# 🎙️ tonethief
 
-**Reverse-engineer any brand voice. Instantly.**
+**Steal any brand's voice. Instantly.**
 
 Point it at any URL. Get a deployable `VOICE.md` in seconds — archetypes, tone spectrum, vocabulary DNA, and a copy-paste AI prompt that makes any LLM write indistinguishably in that brand's voice.
 
 Zero API keys. Zero dependencies. Zero cost.
 
-🌐 **[Website](https://slashimagine.github.io/voiceprint/)** · 📦 **[npm](https://www.npmjs.com/package/voiceprint)**
+🌐 **[Website](https://slashimagine.github.io/tonethief/)** · 📦 **[npm](https://www.npmjs.com/package/tonethief)**
 
 ---
 
 ## Quick Start
 
 ```bash
-npx voiceprint https://liquiddeath.com
+npx tonethief https://liquiddeath.com
 ```
 
 That's it. You get a complete `VOICE.md` — drop it into any AI chat, agent, or system prompt.
@@ -25,52 +25,34 @@ That's it. You get a complete `VOICE.md` — drop it into any AI chat, agent, or
 Not a report. An operating manual. Drop it into any project and your AI writes as that brand.
 
 ```bash
-voiceprint https://liquiddeath.com --output VOICE.md
+tonethief https://liquiddeath.com --output VOICE.md
 ```
 
 Includes:
 - **Identity** — archetypes, traits, one-liner
-- **Tone spectrum** — "extremely irreverent (9.5/10)", "notably playful (7.6/10)"
+- **Tone spectrum** — "extremely irreverent (9.9/10)", "notably playful (7.6/10)"
 - **Writing rules** — sentence structure, vocabulary targets, reading level
 - **Do/Don't guidelines** — specific to the brand, not generic advice
 - **Brand-specific patterns** — dark humor, profanity, death themes, ALL CAPS as style
 - **Voice test** — 4-question checklist before publishing
 - **System prompt** — copy-paste into any LLM
 
-### `--report` — Full analysis report
+### `--report` — Full analytical breakdown
 
 ```bash
-voiceprint https://stripe.com --report
-```
-
-```
-🎙️ Brand Voice Profile: Stripe
-
-> Stripe speaks as The Coach + The Doer — technical, warm, detailed.
-
-Tone Spectrum:
-  Formal         ◼◼◼◼◼◼◻◻◻◻ Casual          5.6/10
-  Technical      ◼◼◼◻◻◻◻◻◻◻ Accessible      2.5/10
-  Conventional   ◼◼◼◼◻◻◻◻◻◻ Irreverent      4.1/10
-  Safe           ◼◼◼◻◻◻◻◻◻◻ Provocative     3.0/10
-
-Personality:
-  Archetypes: The Coach, The Doer
-  Traits: technical, warm, detailed
+tonethief https://stripe.com --report
 ```
 
 ### Compare — Side-by-side brand diff
 
 ```bash
-voiceprint compare https://stripe.com https://liquiddeath.com
+tonethief compare https://stripe.com https://liquiddeath.com
 ```
-
-See exactly where two brands diverge across all 10 tone dimensions.
 
 ### JSON — For pipelines
 
 ```bash
-voiceprint https://notion.so --format json --output notion.json
+tonethief https://notion.so --format json --output notion.json
 ```
 
 ## 10-Dimension Tone Spectrum
@@ -94,7 +76,7 @@ The Friend · The Expert · The Cheerleader · The Storyteller · The Analyst ·
 
 ## Smart Crawling
 
-voiceprint doesn't just scrape the homepage:
+tonethief doesn't just scrape the homepage:
 
 - **Prioritizes voice-rich pages** — /about, /story, /mission, /manifesto, /blog
 - **Semantic zone weighting** — hero copy 3x, headings 2x, nav/footer 0x
@@ -106,7 +88,7 @@ voiceprint doesn't just scrape the homepage:
 
 | Flag | Description |
 |------|-------------|
-| `--report` | Full analysis report instead of VOICE.md |
+| `--report, -r` | Full analytical markdown report |
 | `--format, -f` | Output format: `voice` (default) \| `markdown` \| `json` |
 | `--pages, -p` | Max pages to crawl (default: 8, max: 20) |
 | `--output, -o` | Write to file instead of stdout |
@@ -117,11 +99,11 @@ voiceprint doesn't just scrape the homepage:
 ## Programmatic API
 
 ```javascript
-import { analyzeBrandVoice, formatVoiceFile, formatMarkdown, formatJSON } from 'voiceprint';
+import { analyzeBrandVoice, formatVoiceFile, formatMarkdown, formatJSON } from 'tonethief';
 
 const profile = await analyzeBrandVoice('https://liquiddeath.com', { maxPages: 8 });
 
-// Get the VOICE.md
+// Get the VOICE.md (default)
 const voiceMd = formatVoiceFile(profile);
 
 // Or the full report
@@ -147,4 +129,4 @@ MIT
 
 ---
 
-Built by [Ad Machine](https://admachine.xyz) · [Star on GitHub](https://github.com/SlashImagine/voiceprint)
+Built by [Ad Machine](https://admachine.xyz) · [Star on GitHub](https://github.com/SlashImagine/tonethief)

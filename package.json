@@ -1,10 +1,10 @@
 {
-  "name": "voiceprint",
+  "name": "tonethief",
   "version": "2.0.0",
   "description": "Reverse-engineer any brand's voice. Get a deployable VOICE.md in seconds — archetypes, tone spectrum, vocabulary DNA, and a copy-paste AI prompt.",
   "type": "module",
   "bin": {
-    "voiceprint": "./bin/cli.js"
+    "tonethief": "./bin/cli.js"
   },
   "main": "src/index.js",
   "exports": {
@@ -21,7 +21,7 @@
     "start": "node bin/cli.js"
   },
   "keywords": [
-    "voiceprint",
+    "tonethief",
     "brand-voice",
     "brand",
     "voice",
@@ -40,9 +40,9 @@
   "engines": {
     "node": ">=18"
   },
-  "homepage": "https://slashimagine.github.io/voiceprint/",
+  "homepage": "https://slashimagine.github.io/tonethief/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/SlashImagine/voiceprint.git"
+    "url": "https://github.com/SlashImagine/tonethief.git"
   }
 }
