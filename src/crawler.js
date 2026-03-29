@@ -5,7 +5,9 @@
 
 const IGNORED_TAGS = new Set([
   "script", "style", "noscript", "svg", "path", "meta", "link",
-  "nav", "footer", "header", "iframe", "img", "video", "audio",
+  "iframe", "img", "video", "audio",
+  // NOTE: nav and header intentionally included — they often contain
+  // the most concentrated brand copy (taglines, CTAs, positioning statements)
 ]);
 
 /**
@@ -15,7 +17,7 @@ const IGNORED_TAGS = new Set([
  * @returns {Promise<{ url: string, title: string, text: string }[]>}
  */
 export async function crawlSite(startUrl, opts = {}) {
-  const { maxPages = 3, log = () => {} } = opts;
+  const { maxPages = 8, log = () => {} } = opts;
   const base = new URL(startUrl);
   const visited = new Set();
   const queue = [startUrl];
@@ -31,7 +33,7 @@ export async function crawlSite(startUrl, opts = {}) {
       log(`Fetching ${url}`);
       const res = await fetch(url, {
         headers: {
-          "User-Agent": "brand-voice/1.0 (https://github.com/admachine-ai/brand-voice)",
+          "User-Agent": "voiceprint/2.0 (https://github.com/SlashImagine/brand-voice)",
           "Accept": "text/html",
         },
         redirect: "follow",
@@ -112,7 +114,6 @@ function extractLinks(html, base) {
     try {
       const u = new URL(m[1], base);
       if (u.hostname === base.hostname && u.protocol.startsWith("http")) {
-        // Prefer content-rich pages
         const path = u.pathname.toLowerCase();
         if (
           !path.match(/\.(png|jpg|gif|svg|css|js|pdf|zip|ico|woff|ttf)$/) &&
@@ -128,12 +129,12 @@ function extractLinks(html, base) {
       }
     } catch {}
   }
-  // Prioritize about, blog, product pages
+  // Prioritize brand-story-rich pages first
   return links.sort((a, b) => {
     const score = (url) => {
-      if (/about|story|mission|values/i.test(url)) return 0;
-      if (/blog|post|article/i.test(url)) return 1;
-      if (/product|feature|solution/i.test(url)) return 2;
+      if (/about|story|our-story|who-we-are|mission|values|manifesto|culture|belief|purpose/i.test(url)) return 0;
+      if (/blog|post|article|journal|dispatch|news/i.test(url)) return 1;
+      if (/product|feature|solution|how-it-works/i.test(url)) return 2;
       if (/pricing/i.test(url)) return 3;
       return 5;
     };

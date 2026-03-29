@@ -1,9 +1,10 @@
 {
-  "name": "brand-voice",
+  "name": "voiceprint",
   "version": "1.0.0",
-  "description": "Reverse-engineer any brand's voice from their website. Get an AI-ready brand voice guide in seconds.",
+  "description": "Reverse-engineer any brand voice into a deployable VOICE.md. Archetypes, tone spectrum, vocabulary DNA, and a copy-paste AI prompt. Zero dependencies.",
   "type": "module",
   "bin": {
+    "voiceprint": "./bin/cli.js",
     "brand-voice": "./bin/cli.js"
   },
   "main": "src/index.js",
@@ -30,11 +31,20 @@
     "ai",
     "content",
     "style-guide",
-    "brand-guidelines"
+    "brand-guidelines",
+    "voiceprint",
+    "brand-identity",
+    "voice-md",
+    "soul-md",
+    "brand-guidelines",
+    "ai-copywriting"
   ],
   "author": "Ad Machine <hello@admachine.xyz>",
   "license": "MIT",
   "engines": {
     "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

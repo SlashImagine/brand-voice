@@ -27,6 +27,7 @@ export async function analyzeBrandVoice(url, opts = {}) {
   const personality = derivePersonality(tone, vocabulary, structure);
   const guidelines = generateGuidelines(tone, vocabulary, structure, personality, brand);
   const aiPrompt = generateAIPrompt(brand, personality, tone, vocabulary, structure);
+  const voiceDoc = generateVoiceDoc(brand, url, personality, tone, vocabulary, structure, guidelines, aiPrompt);
   const summary = generateSummary(brand, personality, tone);
 
   return {
@@ -40,18 +41,16 @@ export async function analyzeBrandVoice(url, opts = {}) {
     personality,
     guidelines,
     aiPrompt,
+    voiceDoc,
   };
 }
 
 function extractBrandName(pages, url) {
-  // Try to extract from title
   if (pages[0]?.title) {
     const title = pages[0].title;
-    // Common patterns: "Brand - Tagline", "Brand | Tagline", "Brand: Tagline"
     const parts = title.split(/\s*[|–—:]\s*/);
     if (parts[0] && parts[0].length < 30) return parts[0].trim();
   }
-  // Fallback to domain
   try {
     const hostname = new URL(url).hostname.replace(/^www\./, "");
     return hostname.split(".")[0].charAt(0).toUpperCase() + hostname.split(".")[0].slice(1);
@@ -71,14 +70,16 @@ function splitSentences(text) {
 
 function analyzeTone(sentences, words, text) {
   const dimensions = [
-    { name: "Formal ↔ Casual", score: measureFormality(words, text) },
-    { name: "Serious ↔ Playful", score: measurePlayfulness(words, text) },
-    { name: "Technical ↔ Accessible", score: measureAccessibility(words, text) },
-    { name: "Reserved ↔ Enthusiastic", score: measureEnthusiasm(sentences, text) },
-    { name: "Corporate ↔ Human", score: measureHumanness(words, text) },
-    { name: "Passive ↔ Active", score: measureActiveVoice(sentences) },
-    { name: "Vague ↔ Specific", score: measureSpecificity(words, text) },
-    { name: "Long-winded ↔ Concise", score: measureConciseness(sentences) },
+    { name: "Formal ↔ Casual",         score: measureFormality(words, text) },
+    { name: "Serious ↔ Playful",        score: measurePlayfulness(words, text) },
+    { name: "Technical ↔ Accessible",   score: measureAccessibility(words, text) },
+    { name: "Reserved ↔ Enthusiastic",  score: measureEnthusiasm(sentences, text) },
+    { name: "Corporate ↔ Human",        score: measureHumanness(words, text) },
+    { name: "Passive ↔ Active",         score: measureActiveVoice(sentences) },
+    { name: "Vague ↔ Specific",         score: measureSpecificity(words, text) },
+    { name: "Long-winded ↔ Concise",    score: measureConciseness(sentences) },
+    { name: "Earnest ↔ Irreverent",     score: measureIrreverence(words, text) },
+    { name: "Dry ↔ Humorous",           score: measureHumor(words, sentences, text) },
   ];
 
   return {
@@ -112,7 +113,7 @@ function measurePlayfulness(words, text) {
   const per1000 = words.length / 1000;
 
   let score = 4;
-  score += Math.min(2, (playful.length || (text.match(playful) || []).length) / Math.max(per1000, 1) * 0.5);
+  score += Math.min(2, ((text.match(playful) || []).length) / Math.max(per1000, 1) * 0.5);
   score += Math.min(1, emojis.length / Math.max(per1000, 1) * 0.5);
   score += Math.min(1.5, exclamations / Math.max(per1000, 1) * 0.1);
 
@@ -185,12 +186,66 @@ function measureSpecificity(words, text) {
 
 function measureConciseness(sentences) {
   const avgLen = sentences.reduce((s, sent) => s + sent.split(/\s+/).length, 0) / Math.max(sentences.length, 1);
-  // Short sentences = more concise
   if (avgLen < 10) return 9;
   if (avgLen < 14) return 7;
   if (avgLen < 18) return 5;
   if (avgLen < 22) return 3;
   return 2;
+}
+
+function measureIrreverence(words, text) {
+  // Death/darkness language — signals anti-establishment or edgy brand voice
+  const dark = /\b(death|dead|kill|murder|destroy|doom|chaos|evil|curse|damn|hell|skull|blood|poison|toxic|monster|beast|savage|brutal|carnage|mayhem|wrath|plague|slaughter)\b/gi;
+  // Anti-corporate language — brands that position against the establishment
+  const antiCorp = /\b(corporate|sellout|mainstream|fake|plastic|pollution|evil empire|machine|conform|sheep|drone|clone|establishment|status quo)\b/gi;
+  // Punk/counter-culture signals
+  const punk = /\b(punk|metal|hardcore|underground|rebel|outlaw|renegade|revolution|resistance|fight|battle|riot|rage|uprising|defy|refuse|reject)\b/gi;
+  // Provocateur language
+  const provoke = /\b(murder your|kill your|destroy your|murder the|death to|war on|enemy|weapon|arsenal|ammunition|combat|conquer|defeat)\b/gi;
+
+  const darkCount = (text.match(dark) || []).length;
+  const antiCorpCount = (text.match(antiCorp) || []).length;
+  const punkCount = (text.match(punk) || []).length;
+  const provokeCount = (text.match(provoke) || []).length;
+  const per1000 = words.length / 1000;
+
+  let score = 1;
+  score += Math.min(4, (darkCount / Math.max(per1000, 1)) * 2.5);
+  score += Math.min(3, (antiCorpCount / Math.max(per1000, 1)) * 2);
+  score += Math.min(2, (punkCount / Math.max(per1000, 1)) * 1.5);
+  score += Math.min(2, provokeCount * 1.5);
+
+  return clamp(score);
+}
+
+function measureHumor(words, sentences, text) {
+  // Absurdist / exaggerated copy signals
+  const absurd = /\b(insane|insanely|ridiculous|absurd|bonkers|nuts|wild|unhinged|completely|utterly|absolutely|pure|total|literally|honestly|genuinely|obviously)\b/gi;
+  // Self-aware / meta language
+  const meta = /\b(yes really|we mean it|no seriously|actually|turns out|plot twist|spoiler|surprise|fun fact|true story|believe it or not)\b/gi;
+  // Rhetorical / punchy questions  
+  const rhetorical = sentences.filter(s => s.endsWith("?") && s.split(/\s+/).length < 8).length;
+  // Short punchy fragments (humor signal — comedic timing)
+  const punchyFragments = sentences.filter(s => {
+    const wc = s.split(/\s+/).length;
+    return wc <= 4 && wc >= 1;
+  }).length;
+  // Sarcasm markers
+  const sarcasm = /\b(obviously|naturally|of course|because obviously|as if|right|sure|totally|definitely|absolutely|perfectly normal|completely normal)\b/gi;
+
+  const absurdCount = (text.match(absurd) || []).length;
+  const metaCount = (text.match(meta) || []).length;
+  const sarcasmCount = (text.match(sarcasm) || []).length;
+  const per1000 = words.length / 1000;
+
+  let score = 3;
+  score += Math.min(2.5, (absurdCount / Math.max(per1000, 1)) * 0.5);
+  score += Math.min(2, metaCount * 0.4);
+  score += Math.min(1.5, (rhetorical / Math.max(sentences.length, 1)) * 15);
+  score += Math.min(1, (punchyFragments / Math.max(sentences.length, 1)) * 8);
+  score += Math.min(1.5, (sarcasmCount / Math.max(per1000, 1)) * 0.3);
+
+  return clamp(score);
 }
 
 // ── Vocabulary Analysis ──────────────────────────────────────────
@@ -215,11 +270,8 @@ function analyzeVocabulary(words, text) {
     .sort((a, b) => b[1] - a[1]);
 
   const powerWords = meaningful.slice(0, 20).map(([w, c]) => ({ word: w, count: c }));
-
-  // Unique word ratio
   const uniqueRatio = new Set(lower).size / Math.max(lower.length, 1);
 
-  // Jargon detection
   const jargon = /\b(roi|kpi|saas|b2b|b2c|api|sdk|mvp|ux|ui|crm|erp|gtm|cac|ltv|arr|mrr|cto|ceo|cfo|devops|cicd|agile|scrum)\b/gi;
   const jargonWords = [...new Set((text.match(jargon) || []).map((w) => w.toUpperCase()))];
 
@@ -240,7 +292,7 @@ function analyzeStructure(sentences, words) {
   const avg = lengths.reduce((a, b) => a + b, 0) / Math.max(lengths.length, 1);
   const questions = sentences.filter((s) => s.endsWith("?")).length;
   const exclamations = sentences.filter((s) => s.endsWith("!")).length;
-  const imperatives = sentences.filter((s) => /^(get|start|try|build|create|make|join|sign|discover|explore|learn|see|check|read|find|grow|take|use|set|run|open|click|download)\b/i.test(s)).length;
+  const imperatives = sentences.filter((s) => /^(get|start|try|build|create|make|join|sign|discover|explore|learn|see|check|read|find|grow|take|use|set|run|open|click|download|murder|kill|destroy|fight)\b/i.test(s)).length;
 
   return {
     averageSentenceLength: Math.round(avg * 10) / 10,
@@ -254,7 +306,6 @@ function analyzeStructure(sentences, words) {
 
 function estimateReadingLevel(avgSentenceLen, words) {
   const avgWordLen = words.reduce((s, w) => s + w.length, 0) / Math.max(words.length, 1);
-  // Simplified readability approximation
   const score = 0.39 * avgSentenceLen + 11.8 * (avgWordLen / 4.7) - 15.59;
   const grade = Math.round(Math.max(1, Math.min(16, score)));
   if (grade <= 6) return { grade, label: "Elementary" };
@@ -269,8 +320,18 @@ function estimateReadingLevel(avgSentenceLen, words) {
 function derivePersonality(tone, vocabulary, structure) {
   const d = Object.fromEntries(tone.dimensions.map((t) => [t.name, t.score]));
 
+  const irreverenceScore = d["Earnest ↔ Irreverent"] || 1;
+  const humorScore = d["Dry ↔ Humorous"] || 3;
+
   const archetypes = [];
 
+  // Edgy / counter-culture archetypes (check first — these are rarer and more distinctive)
+  if (irreverenceScore >= 7) archetypes.push("The Outlaw");
+  if (irreverenceScore >= 5) archetypes.push("The Rebel");
+  if (irreverenceScore >= 5 && humorScore >= 5) archetypes.push("The Anti-Hero");
+  if (humorScore >= 6) archetypes.push("The Jester");
+
+  // Standard archetypes
   if (d["Formal ↔ Casual"] >= 7 && d["Serious ↔ Playful"] >= 6) {
     archetypes.push("The Friend");
   } else if (d["Formal ↔ Casual"] <= 4 && d["Technical ↔ Accessible"] <= 4) {
@@ -279,26 +340,34 @@ function derivePersonality(tone, vocabulary, structure) {
 
   if (d["Reserved ↔ Enthusiastic"] >= 7) archetypes.push("The Cheerleader");
   if (d["Corporate ↔ Human"] >= 7) archetypes.push("The Storyteller");
-  if (d["Vague ↔ Specific"] >= 7) archetypes.push("The Analyst");
+  if (d["Vague ↔ Specific"] >= 7 && irreverenceScore < 5) archetypes.push("The Analyst");
   if (structure.imperativeRatio > 0.1) archetypes.push("The Coach");
-  if (d["Long-winded ↔ Concise"] >= 7) archetypes.push("The Minimalist");
-  if (d["Passive ↔ Active"] >= 7) archetypes.push("The Doer");
+  if (d["Long-winded ↔ Concise"] >= 7 && archetypes.length < 2) archetypes.push("The Minimalist");
+  if (d["Passive ↔ Active"] >= 7 && archetypes.length < 2) archetypes.push("The Doer");
 
   if (archetypes.length === 0) archetypes.push("The Professional");
 
   const traits = [];
+  // Irreverence traits first — most distinctive
+  if (irreverenceScore >= 7) traits.push("provocative");
+  if (irreverenceScore >= 5) traits.push("irreverent");
+  if (humorScore >= 6) traits.push("witty");
+  if (humorScore >= 7) traits.push("absurdist");
+
+  // Standard traits
   if (d["Formal ↔ Casual"] >= 6) traits.push("approachable");
   if (d["Formal ↔ Casual"] <= 4) traits.push("polished");
-  if (d["Serious ↔ Playful"] >= 6) traits.push("witty");
-  if (d["Serious ↔ Playful"] <= 4) traits.push("serious");
+  if (d["Serious ↔ Playful"] >= 6 && humorScore < 6) traits.push("playful");
+  if (d["Serious ↔ Playful"] <= 4 && irreverenceScore < 5) traits.push("serious");
   if (d["Technical ↔ Accessible"] >= 6) traits.push("clear");
   if (d["Technical ↔ Accessible"] <= 4) traits.push("technical");
   if (d["Reserved ↔ Enthusiastic"] >= 6) traits.push("energetic");
-  if (d["Reserved ↔ Enthusiastic"] <= 4) traits.push("measured");
+  if (d["Reserved ↔ Enthusiastic"] <= 4 && irreverenceScore < 5) traits.push("measured");
   if (d["Corporate ↔ Human"] >= 6) traits.push("warm");
   if (d["Corporate ↔ Human"] <= 4) traits.push("corporate");
-  if (d["Long-winded ↔ Concise"] >= 6) traits.push("concise");
+  if (d["Long-winded ↔ Concise"] >= 6) traits.push("direct");
   if (d["Long-winded ↔ Concise"] <= 4) traits.push("detailed");
+  if (d["Passive ↔ Active"] >= 7) traits.push("bold");
 
   return { archetypes, traits };
 }
@@ -310,49 +379,49 @@ function generateGuidelines(tone, vocabulary, structure, personality, brand) {
   const dos = [];
   const donts = [];
 
+  const irreverenceScore = d["Earnest ↔ Irreverent"] || 1;
+  const humorScore = d["Dry ↔ Humorous"] || 3;
+
+  // Irreverence / edginess guidelines
+  if (irreverenceScore >= 6) {
+    dos.push("Lean into the dark, unexpected, or provocative — that's the brand");
+    dos.push("Use death, danger, and dramatic language intentionally and with confidence");
+    dos.push("Mock corporate speak — it's part of the positioning");
+    donts.push("Sanitize or soften the edge — that kills the voice");
+    donts.push("Sound like a normal beverage brand");
+    donts.push("Use earnest, sincere marketing language without irony");
+  }
+
+  // Humor guidelines
+  if (humorScore >= 6) {
+    dos.push("Use absurdist logic and treat ridiculous things with total seriousness");
+    dos.push("Short punchy lines for comedic timing — let the joke breathe");
+    donts.push("Explain the joke");
+    donts.push("Force humor — the funniest lines come from complete commitment");
+  }
+
   // Formality
   if (d["Formal ↔ Casual"] >= 6) {
     dos.push("Use contractions (we're, it's, you'll)");
     dos.push("Write like you're talking to a smart friend");
     donts.push("Sound like a legal document");
-  } else {
+  } else if (irreverenceScore < 5) {
     dos.push("Maintain professional tone throughout");
     donts.push("Use slang or overly casual language");
-  }
-
-  // Playfulness
-  if (d["Serious ↔ Playful"] >= 6) {
-    dos.push("Inject personality and wit where appropriate");
-    dos.push("Use unexpected metaphors or analogies");
-    donts.push("Be dry or robotic");
-  } else {
-    dos.push("Keep messaging focused and substantive");
-    donts.push("Try too hard to be funny");
   }
 
   // Technical
   if (d["Technical ↔ Accessible"] >= 6) {
     dos.push("Explain complex ideas in simple terms");
-    dos.push("Use analogies to make concepts relatable");
     donts.push("Hide behind jargon");
   } else {
     dos.push("Use precise technical terminology");
     donts.push("Oversimplify to the point of inaccuracy");
   }
 
-  // Enthusiasm
-  if (d["Reserved ↔ Enthusiastic"] >= 6) {
-    dos.push("Show genuine excitement about what you're building");
-    donts.push("Be monotone or flat");
-  } else {
-    dos.push("Let the product speak for itself");
-    donts.push("Use excessive exclamation points or superlatives");
-  }
-
   // Conciseness
   if (d["Long-winded ↔ Concise"] >= 6) {
-    dos.push("Keep sentences short and punchy");
-    dos.push("Cut every unnecessary word");
+    dos.push("Keep sentences short and punchy — cut every unnecessary word");
     donts.push("Write paragraphs when a sentence will do");
   }
 
@@ -375,6 +444,8 @@ function generateGuidelines(tone, vocabulary, structure, personality, brand) {
 
 function generateAIPrompt(brand, personality, tone, vocabulary, structure) {
   const d = Object.fromEntries(tone.dimensions.map((t) => [t.name, t.score]));
+  const irreverenceScore = d["Earnest ↔ Irreverent"] || 1;
+  const humorScore = d["Dry ↔ Humorous"] || 3;
 
   const toneDesc = tone.dimensions
     .filter((t) => Math.abs(t.score - 5) >= 1.5)
@@ -386,28 +457,250 @@ function generateAIPrompt(brand, personality, tone, vocabulary, structure) {
 
   const traitList = personality.traits.slice(0, 5).join(", ");
   const reading = structure.readingLevel.label.toLowerCase();
+  const archetypeList = personality.archetypes.join(", ");
 
-  return `You are writing as ${brand}. Your voice is ${traitList}.
+  let irreverenceInstructions = "";
+  if (irreverenceScore >= 6) {
+    irreverenceInstructions = `
+You are allowed — encouraged — to use dark, provocative, death-adjacent language. That is NOT a mistake; it IS the brand.
+Treat death, danger, and the macabre as normal, even desirable. Keep a straight face — the humor comes from total commitment.
+Never sanitize or soften the edge. Corporate-speak is the enemy.`;
+  }
 
-Tone: ${toneDesc}.
-Reading level: ${reading} (avg ${structure.averageSentenceLength} words/sentence).
-${d["Formal ↔ Casual"] >= 6 ? "Use contractions naturally." : "Avoid contractions."}
-${d["Serious ↔ Playful"] >= 6 ? "Add personality and wit." : "Stay focused and substantive."}
-${d["Reserved ↔ Enthusiastic"] >= 6 ? "Show enthusiasm without being over the top." : "Be measured and confident."}
-${d["Corporate ↔ Human"] >= 6 ? "Write like a human, not a corporation." : "Maintain professional polish."}
-${vocabulary.powerWords.length ? `Key vocabulary: ${vocabulary.powerWords.slice(0, 10).map((w) => w.word).join(", ")}.` : ""}
-${personality.archetypes.length ? `Channel the personality of: ${personality.archetypes.join(", ")}.` : ""}`;
+  let humorInstructions = "";
+  if (humorScore >= 6) {
+    humorInstructions = `
+Use absurdist logic: treat ridiculous premises with complete seriousness.
+Short punchy fragments create comedic timing. One-word sentences are fine.
+Never explain the joke.`;
+  }
+
+  return `You are writing copy as ${brand}.
+
+## Voice
+Archetypes: ${archetypeList}
+Traits: ${traitList}
+Tone: ${toneDesc || "balanced across all dimensions"}
+Reading level: ${reading} (avg ${structure.averageSentenceLength} words/sentence)
+${irreverenceInstructions}${humorInstructions}
+## Writing Rules
+${d["Formal ↔ Casual"] >= 6 ? "- Use contractions naturally." : "- Avoid contractions."}
+${d["Serious ↔ Playful"] >= 6 || humorScore >= 6 ? "- Add personality. Wit is welcome." : "- Stay focused and substantive."}
+${d["Reserved ↔ Enthusiastic"] >= 6 ? "- Show genuine enthusiasm without being over the top." : "- Be measured and confident."}
+${d["Corporate ↔ Human"] >= 6 ? "- Write like a human, not a corporation." : "- Maintain professional polish."}
+${d["Long-winded ↔ Concise"] >= 6 ? "- Cut every unnecessary word. Sentences should earn their length." : ""}
+${vocabulary.powerWords.length ? `\n## Vocabulary\nUse these words naturally (they define the brand lexicon):\n${vocabulary.powerWords.slice(0, 12).map((w) => w.word).join(", ")}` : ""}`;
+}
+
+// ── VOICE.md Document ──────────────────────────────────────────
+
+/**
+ * Generate a deployable VOICE.md — the brand's operating system for AI.
+ * Drop this file into any project and AI tools will write in this brand's voice.
+ */
+function generateVoiceDoc(brand, url, personality, tone, vocabulary, structure, guidelines, aiPrompt) {
+  const d = Object.fromEntries(tone.dimensions.map((t) => [t.name, t.score]));
+  const irreverenceScore = d["Earnest ↔ Irreverent"] || 1;
+  const humorScore = d["Dry ↔ Humorous"] || 3;
+
+  const archetypeList = personality.archetypes.join(" · ");
+  const traitList = personality.traits.join(", ");
+  const topPowerWords = vocabulary.powerWords.slice(0, 20).map(w => w.word).join(", ");
+  const topDimensions = tone.dimensions
+    .filter(t => Math.abs(t.score - 5) >= 1.5)
+    .map(t => {
+      const [low, high] = t.name.split(" ↔ ");
+      const label = t.score >= 6 ? high : low;
+      return `${label} (${t.score}/10)`;
+    })
+    .join(", ");
+
+  const toneTable = tone.dimensions
+    .map(t => {
+      const [low, high] = t.name.split(" ↔ ");
+      const bar = "█".repeat(Math.round(t.score)) + "░".repeat(10 - Math.round(t.score));
+      return `| ${low.padEnd(14)} ${bar} ${high.padEnd(14)} | ${t.score}/10 |`;
+    })
+    .join("\n");
+
+  const dosFormatted = guidelines.dos.map(d => `- ${d}`).join("\n");
+  const dontsFormatted = guidelines.donts.map(d => `- ${d}`).join("\n");
+
+  // Generate example copy in this voice
+  const exampleHooks = generateExampleHooks(brand, personality, tone, vocabulary);
+
+  return `# ${brand} — VOICE.md
+> The brand voice operating system. Drop this file into any AI tool, agent, or project.
+> Every word you write should be indistinguishable from ${brand}'s own copy.
+
+**Source:** ${url}
+**Generated by:** voiceprint
+
+---
+
+## The One-Line Brief
+
+${generateOneLiner(brand, personality, tone)}
+
+---
+
+## Who ${brand} Sounds Like
+
+**Archetypes:** ${archetypeList}
+**Core traits:** ${traitList}
+**Defining quality:** ${personality.archetypes[0] || "The Professional"}
+
+${irreverenceScore >= 6 ? `> ⚡ This is a high-irreverence brand. The edge is intentional. Do not soften it.\n` : ""}${humorScore >= 6 ? `> 😈 Humor is structural, not decorative. It comes from total commitment to the bit.\n` : ""}
+---
+
+## Tone Spectrum
+
+| Dimension | Score |
+|-----------|-------|
+${toneTable}
+
+**Dominant tones:** ${topDimensions || "Balanced"}
+
+---
+
+## Vocabulary
+
+**Reading level:** ${structure.readingLevel.label} (Grade ${structure.readingLevel.grade}) · avg ${structure.averageSentenceLength} words/sentence
+**Brand lexicon (use these naturally):**
+\`${topPowerWords}\`
+${vocabulary.jargon.length ? `\n**Industry terms used:** ${vocabulary.jargon.join(", ")}` : ""}
+
+---
+
+## Writing Rules
+
+### ✅ Always
+${dosFormatted}
+
+### ❌ Never
+${dontsFormatted}
+
+---
+
+## Sentence Rhythm
+
+- Average sentence: **${structure.averageSentenceLength} words**
+- Reading level: **${structure.readingLevel.label}**
+- Questions: **${Math.round(structure.questionRatio * 100)}%** of sentences
+- Exclamations: **${Math.round(structure.exclamationRatio * 100)}%** of sentences
+- Imperatives: **${Math.round(structure.imperativeRatio * 100)}%** of sentences
+${irreverenceScore >= 5 ? "\n> Short sentences hit harder. Use them for impact. One word can be enough.\n" : ""}
+---
+
+## Example Copy (in this voice)
+
+${exampleHooks}
+
+---
+
+## System Prompt
+
+Copy-paste this into ChatGPT, Claude, or any AI tool:
+
+\`\`\`
+${aiPrompt}
+\`\`\`
+
+---
+
+## Quick Reference Card
+
+| What to do | Why |
+|-----------|-----|
+| Read this file first | Sets the entire voice |
+| Match the vocabulary | Power words = brand fingerprint |
+| Match the rhythm | ${structure.averageSentenceLength} words avg. Count your sentences. |
+| ${personality.archetypes[0] === "The Rebel" || personality.archetypes[0] === "The Outlaw" ? "Embrace the dark / irreverent angle" : "Stay on archetype"} | ${personality.archetypes[0] === "The Rebel" || personality.archetypes[0] === "The Outlaw" ? "That IS the brand" : "Consistency builds recognition"} |
+| When in doubt | Ask: would ${brand} actually say this? |
+
+---
+
+*Generated by [voiceprint](https://github.com/SlashImagine/brand-voice) · MIT License*
+`;
+}
+
+function generateOneLiner(brand, personality, tone) {
+  const d = Object.fromEntries(tone.dimensions.map((t) => [t.name, t.score]));
+  const irreverenceScore = d["Earnest ↔ Irreverent"] || 1;
+  const archetype = personality.archetypes[0] || "The Professional";
+  const traits = personality.traits.slice(0, 3).join(", ");
+
+  if (irreverenceScore >= 7) {
+    return `${brand} is a provocateur. It speaks in the voice of ${archetype} — ${traits}. It uses darkness and irreverence as features, not bugs.`;
+  } else if (irreverenceScore >= 5) {
+    return `${brand} is a rebel with a cause. It sounds like ${archetype} — ${traits}. It bends the rules of category convention without breaking them.`;
+  } else if (d["Corporate ↔ Human"] >= 7) {
+    return `${brand} sounds like a brilliant friend who happens to be an expert. ${archetype} energy — ${traits}. Never corporate. Always human.`;
+  } else {
+    return `${brand} writes as ${archetype} — ${traits}. Clear, consistent, and unmistakably itself.`;
+  }
+}
+
+function generateExampleHooks(brand, personality, tone, vocabulary) {
+  const d = Object.fromEntries(tone.dimensions.map((t) => [t.name, t.score]));
+  const irreverenceScore = d["Earnest ↔ Irreverent"] || 1;
+  const humorScore = d["Dry ↔ Humorous"] || 3;
+  const topWords = vocabulary.powerWords.slice(0, 5).map(w => w.word);
+
+  if (irreverenceScore >= 6) {
+    return `Here's how ${brand} would write a product line:
+
+> "${topWords[0] ? topWords[0].charAt(0).toUpperCase() + topWords[0].slice(1) : "Death"}. But make it refreshing."
+
+> "Warning: contains ${topWords[1] || "water"}. Side effects include being slightly less dead."
+
+> "For people who take hydration as seriously as we take everything else. Which is to say: not very."`;
+  } else if (humorScore >= 6) {
+    return `Here's how ${brand} would write a product line:
+
+> "It's ${topWords[0] || "this"}. You know what it is. Just buy it."
+
+> "Made for people who have better things to do than read product descriptions."
+
+> "Does exactly what it says. Nothing more. Nothing less. Surprisingly rare."`;
+  } else if (d["Corporate ↔ Human"] >= 7) {
+    return `Here's how ${brand} would write a product line:
+
+> "We built this because we needed it and it didn't exist. You're welcome."
+
+> "Some teams. A lot of ${topWords[0] || "work"}. The thing you've been looking for."
+
+> "Here's the honest version: [what it does, why it matters, nothing extra]."`;
+  } else {
+    return `Here's how ${brand} would write a product line:
+
+> "The ${topWords[0] || "product"} that [specific benefit]. [Proof point]. [CTA]."
+
+> "Built for [specific person] who needs [specific outcome]."
+
+> "[Feature] that [benefit] without [common tradeoff]."`;
+  }
 }
 
 // ── Summary ──────────────────────────────────────────────
 
 function generateSummary(brand, personality, tone) {
+  const d = Object.fromEntries(tone.dimensions.map((t) => [t.name, t.score]));
+  const irreverenceScore = d["Earnest ↔ Irreverent"] || 1;
   const traits = personality.traits.slice(0, 4).join(", ");
   const archetype = personality.archetypes[0] || "The Professional";
-  return `${brand} speaks as ${archetype} — ${traits}. ${tone.dominant.map((d) => {
+
+  const verb = irreverenceScore >= 7 ? "fights like"
+    : irreverenceScore >= 5 ? "speaks as"
+    : d["Corporate ↔ Human"] >= 7 ? "connects as"
+    : "presents as";
+
+  const dominant = tone.dominant.map((d) => {
     const [low, high] = d.name.split(" ↔ ");
     return d.score >= 6 ? high : low;
-  }).join(", ")}.`;
+  }).join(", ");
+
+  return `${brand} ${verb} ${archetype} — ${traits}. ${dominant}.`;
 }
 
 function clamp(v, min = 1, max = 10) {
