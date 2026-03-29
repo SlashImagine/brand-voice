@@ -1,0 +1,40 @@
+{
+  "name": "brand-voice",
+  "version": "1.0.0",
+  "description": "Reverse-engineer any brand's voice from their website. Get an AI-ready brand voice guide in seconds.",
+  "type": "module",
+  "bin": {
+    "brand-voice": "./bin/cli.js"
+  },
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "start": "node bin/cli.js"
+  },
+  "keywords": [
+    "brand-voice",
+    "brand",
+    "voice",
+    "tone",
+    "marketing",
+    "copywriting",
+    "ai",
+    "content",
+    "style-guide",
+    "brand-guidelines"
+  ],
+  "author": "Ad Machine <hello@admachine.xyz>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}
