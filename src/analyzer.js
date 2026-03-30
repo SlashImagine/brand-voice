@@ -467,8 +467,6 @@ function derivePersonality(tone, vocabulary, structure, text) {
   return { archetypes, traits };
 }
 
-// ── Guidelines ──────────────────────────────────────────────
-
 function generateGuidelines(tone, vocabulary, structure, personality, brand) {
   const d = Object.fromEntries(tone.dimensions.map((t) => [t.name, t.score]));
   const dos = [];
