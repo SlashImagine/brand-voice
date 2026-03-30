@@ -1,49 +1,53 @@
 #!/usr/bin/env node
 
 import { parseArgs } from "node:util";
-import { analyzeBrandVoice, formatMarkdown, formatJSON, formatVoiceFile } from "../src/index.js";
+import { analyzeBrandVoice } from "../src/index.js";
+import { formatMarkdown, formatVoiceFile, formatJSON } from "../src/formatter.js";
 
 const help = `
-  tonethief — reverse-engineer any brand voice. instantly.
+  tonethief — Steal any brand's voice. Outputs a deployable VOICE.md.
 
   Usage:
-    tonethief <url>                           Generate a deployable VOICE.md
-    tonethief <url> --report                  Full analysis report instead
-    tonethief <url> --format json             Output as JSON
-    tonethief <url> --pages 10                Crawl up to 10 pages (default: 8)
-    tonethief <url> --output VOICE.md         Save to file
-    tonethief compare <url1> <url2>           Compare two brands side-by-side
+    tonethief <url>                     Output VOICE.md (default)
+    tonethief <url> --output VOICE.md   Save to file
+    tonethief <url> --analytics         Scores/analytics view instead of VOICE.md
+    tonethief <url> --format json       Raw JSON output
+    tonethief <url> --pages 10          Crawl more pages (default: 8, max: 20)
+    tonethief compare <url1> <url2>     Side-by-side brand comparison
 
   Options:
-    --report        Full analysis report (default is VOICE.md)
-    --format, -f    Output format: voice (default) | markdown | json
-    --pages, -p     Max pages to crawl (default: 5, max: 10)
-    --output, -o    Write output to file instead of stdout
-    --verbose, -v   Show crawling progress
-    --help, -h      Show this help
-    --version       Show version
+    --analytics, -a   Scores/stats view instead of VOICE.md
+    --format, -f      voice (default) | markdown | json
+    --pages, -p       Pages to crawl (default: 8, max: 20)
+    --output, -o      Write output to file
+    --verbose, -v     Show crawl progress
+    --help, -h        Show this help
+    --version         Show version
 
   Examples:
     tonethief https://liquiddeath.com
-    tonethief https://stripe.com --output VOICE.md
-    tonethief https://notion.so --report
-    tonethief https://notion.so --format json
+    tonethief https://yourbrand.com --output VOICE.md
     tonethief compare https://stripe.com https://square.com
+    tonethief https://notion.so --analytics
+    tonethief https://stripe.com --format json
 
-  https://github.com/SlashImagine/tonethief
+  What is a VOICE.md?
+    A deployable brand identity file. Drop it into any project, AI agent,
+    or system prompt and your AI writes indistinguishably from that brand.
+    Think SOUL.md — but for any company on the internet.
 `;
 
 try {
   const { values, positionals } = parseArgs({
     allowPositionals: true,
     options: {
-      format: { type: "string", short: "f", default: "voice" },
-      report: { type: "boolean", default: false },
-      pages: { type: "string", short: "p", default: "5" },
-      output: { type: "string", short: "o" },
-      verbose: { type: "boolean", short: "v", default: false },
-      help: { type: "boolean", short: "h", default: false },
-      version: { type: "boolean", default: false },
+      analytics: { type: "boolean", short: "a", default: false },
+      format:    { type: "string",  short: "f", default: "voice" },
+      pages:     { type: "string",  short: "p", default: "8" },
+      output:    { type: "string",  short: "o" },
+      verbose:   { type: "boolean", short: "v", default: false },
+      help:      { type: "boolean", short: "h", default: false },
+      version:   { type: "boolean",             default: false },
     },
   });
 
@@ -58,15 +62,17 @@ try {
     process.exit(0);
   }
 
-  // --report flag overrides to markdown report
-  const format = values.report ? "markdown" : values.format;
-
   const isCompare = positionals[0] === "compare";
   const urls = isCompare ? positionals.slice(1) : [positionals[0]];
-  const maxPages = Math.min(parseInt(values.pages) || 5, 10);
+  const maxPages = Math.min(parseInt(values.pages) || 8, 20);
+
+  // VOICE.md is the default. --analytics or --format markdown/json opts out.
+  const wantVoiceDoc = !values.analytics
+    && values.format !== "markdown"
+    && values.format !== "json";
 
   if (urls.length === 0 || (isCompare && urls.length < 2)) {
-    console.error(isCompare ? "Error: compare needs two URLs" : "Error: provide a URL");
+    console.error(isCompare ? "Error: compare requires two URLs" : "Error: provide a URL");
     process.exit(1);
   }
 
@@ -78,9 +84,10 @@ try {
     log(`Analyzing ${urls[1]}...`);
     const b = await analyzeBrandVoice(urls[1], { maxPages, log });
 
-    const output = format === "json"
+    // Side-by-side comparison as markdown (both profiles)
+    const output = values.format === "json"
       ? JSON.stringify({ brands: [a, b] }, null, 2)
-      : formatComparison(a, b);
+      : `# Brand Comparison: ${a.brand} vs ${b.brand}\n\n## ${a.brand}\n${formatVoiceFile(a)}\n\n---\n\n## ${b.brand}\n${formatVoiceFile(b)}`;
 
     await write(output, values.output);
   } else {
@@ -88,15 +95,16 @@ try {
     const result = await analyzeBrandVoice(urls[0], { maxPages, log });
 
     let output;
-    switch (format) {
-      case "json":
-        output = formatJSON(result);
-        break;
-      case "voice":
-        output = formatVoiceFile(result);
-        break;
-      default:
-        output = formatMarkdown(result);
+    if (wantVoiceDoc) {
+      output = formatVoiceFile(result);
+      if (!values.output) {
+        const slug = result.brand.toLowerCase().replace(/[^a-z0-9]/g, "-");
+        process.stderr.write(`\n  💾 Tip: save with --output ${slug}-VOICE.md\n\n`);
+      }
+    } else if (values.format === "json") {
+      output = formatJSON(result);
+    } else {
+      output = formatMarkdown(result);
     }
 
     await write(output, values.output);
@@ -110,45 +118,8 @@ async function write(content, outputPath) {
   if (outputPath) {
     const { writeFileSync } = await import("node:fs");
     writeFileSync(outputPath, content, "utf-8");
-    console.error(`Written to ${outputPath}`);
+    process.stderr.write(`  ✓ Written to ${outputPath}\n`);
   } else {
     console.log(content);
   }
-}
-
-function formatComparison(a, b) {
-  return `# ⚔️ Brand Voice Comparison
-
-## ${a.brand} vs ${b.brand}
-
-### Tone Spectrum
-| Dimension | ${a.brand} | ${b.brand} |
-|-----------|${"-".repeat(a.brand.length + 2)}|${"-".repeat(b.brand.length + 2)}|
-${a.tone.dimensions.map((d, i) => `| ${d.name} | ${d.score}/10 | ${b.tone.dimensions[i]?.score ?? "–"}/10 |`).join("\n")}
-
-### ${a.brand}
-> ${a.summary}
-
-### ${b.brand}
-> ${b.summary}
-
-### Key Differences
-${diffBrands(a, b)}
-
----
-
-*Generated by [tonethief](https://github.com/SlashImagine/tonethief)*
-`;
-}
-
-function diffBrands(a, b) {
-  const diffs = [];
-  for (let i = 0; i < a.tone.dimensions.length; i++) {
-    const da = a.tone.dimensions[i];
-    const db = b.tone.dimensions[i];
-    if (db && Math.abs(da.score - db.score) >= 3) {
-      diffs.push(`- **${da.name}:** ${a.brand} (${da.score}/10) vs ${b.brand} (${db.score}/10)`);
-    }
-  }
-  return diffs.length ? diffs.join("\n") : "Brands are relatively similar in tone.";
 }
