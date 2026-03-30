@@ -6,7 +6,7 @@ Point it at any URL. Get a deployable `VOICE.md` in seconds — archetypes, tone
 
 Zero API keys. Zero dependencies. Zero cost.
 
-🌐 **[Website](https://slashimagine.github.io/tonethief/)** · 📦 **[npm](https://www.npmjs.com/package/tonethief)**
+🌐 **[Website](https://slashimagine.github.io/tonethief/)**
 
 ---
 
