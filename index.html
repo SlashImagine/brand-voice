@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>voiceprint — reverse-engineer any brand voice</title>
+  <title>tonethief — steal any brand's voice</title>
   <meta name="description" content="Point it at any URL. Get a deployable VOICE.md in seconds. Archetypes, tone spectrum, vocabulary DNA, and a copy-paste AI prompt. Zero dependencies." />
-  <meta property="og:title" content="voiceprint" />
+  <meta property="og:title" content="tonethief" />
   <meta property="og:description" content="Reverse-engineer any brand voice into a deployable AI identity file." />
-  <meta property="og:image" content="https://voiceprint.sh/og.png" />
+  <meta property="og:image" content="https://tonethief.sh/og.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -18,15 +18,15 @@
   <!-- NAV -->
   <nav>
     <div class="nav-inner">
-      <a href="/" class="logo">voiceprint</a>
+      <a href="/" class="logo">tonethief</a>
       <div class="star-btn-wrap">
         <iframe
-          src="https://ghbtns.com/github-btn.html?user=SlashImagine&repo=voiceprint&type=star&count=true&size=large"
+          src="https://ghbtns.com/github-btn.html?user=SlashImagine&repo=tonethief&type=star&count=true&size=large"
           frameborder="0"
           scrolling="0"
           width="160"
           height="32"
-          title="Star SlashImagine/voiceprint on GitHub"
+          title="Star SlashImagine/tonethief on GitHub"
         ></iframe>
       </div>
     </div>
@@ -40,13 +40,13 @@
       <p class="hero-sub">Point it at any URL. Get a deployable <code>VOICE.md</code> in seconds —<br/>archetypes, tone spectrum, vocabulary DNA, and a copy-paste AI prompt.</p>
 
       <div class="cta-row">
-        <button class="cta-copy" data-copy="npx voiceprint https://yourbrand.com">
-          <span class="cta-text">$ npx voiceprint &lt;url&gt;</span>
+        <button class="cta-copy" data-copy="npx tonethief https://yourbrand.com">
+          <span class="cta-text">$ npx tonethief &lt;url&gt;</span>
           <span class="cta-icon">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
           </span>
         </button>
-        <a href="https://github.com/SlashImagine/voiceprint" class="cta-secondary" target="_blank">View on GitHub →</a>
+        <a href="https://github.com/SlashImagine/tonethief" class="cta-secondary" target="_blank">View on GitHub →</a>
       </div>
 
       <!-- TERMINAL -->
@@ -55,7 +55,7 @@
           <div class="dot dot-red"></div>
           <div class="dot dot-yellow"></div>
           <div class="dot dot-green"></div>
-          <span class="terminal-title">voiceprint</span>
+          <span class="terminal-title">tonethief</span>
         </div>
         <div class="terminal-body">
           <div class="terminal-output" id="terminal-output"></div>
@@ -104,7 +104,7 @@
         <div class="voice-md-left">
           <p class="section-label">The output</p>
           <h2>Not a report.<br/>A <span class="accent">VOICE.md</span>.</h2>
-          <p>Most tools give you analytics. voiceprint gives you something you can actually use — a deployable brand identity file.</p>
+          <p>Most tools give you analytics. tonethief gives you something you can actually use — a deployable brand identity file.</p>
           <p>Drop <code>VOICE.md</code> into any project, AI agent, or system prompt. Your AI will write indistinguishably from that brand.</p>
           <p class="voice-md-analogy">Think <code>SOUL.md</code> — but for any company on the internet.</p>
         </div>
@@ -174,7 +174,7 @@
         <div class="feature-card reveal-child">
           <div class="feature-icon">⚔️</div>
           <h3>Compare Two Brands</h3>
-          <p>Side-by-side voice diff. Run <code>voiceprint compare stripe.com square.com</code> and see exactly where they diverge.</p>
+          <p>Side-by-side voice diff. Run <code>tonethief compare stripe.com square.com</code> and see exactly where they diverge.</p>
         </div>
       </div>
     </div>
@@ -193,25 +193,25 @@
         </div>
         <div class="tab-content active" id="tab-npx">
           <div class="code-block">
-            <code>$ npx voiceprint https://yourbrand.com</code>
-            <button class="copy-btn" data-copy="npx voiceprint https://yourbrand.com">Copy</button>
+            <code>$ npx tonethief https://yourbrand.com</code>
+            <button class="copy-btn" data-copy="npx tonethief https://yourbrand.com">Copy</button>
           </div>
           <p class="tab-note">No install required. Runs immediately. Zero API keys.</p>
         </div>
         <div class="tab-content" id="tab-npm">
           <div class="code-block">
-            <code>$ npm install -g voiceprint</code>
-            <button class="copy-btn" data-copy="npm install -g voiceprint">Copy</button>
+            <code>$ npm install -g tonethief</code>
+            <button class="copy-btn" data-copy="npm install -g tonethief">Copy</button>
           </div>
           <div class="code-block" style="margin-top: 8px">
-            <code>$ voiceprint https://yourbrand.com --voice --output VOICE.md</code>
-            <button class="copy-btn" data-copy="voiceprint https://yourbrand.com --voice --output VOICE.md">Copy</button>
+            <code>$ tonethief https://yourbrand.com --voice --output VOICE.md</code>
+            <button class="copy-btn" data-copy="tonethief https://yourbrand.com --voice --output VOICE.md">Copy</button>
           </div>
         </div>
         <div class="tab-content" id="tab-source">
           <div class="code-block">
-            <code>$ git clone https://github.com/SlashImagine/voiceprint</code>
-            <button class="copy-btn" data-copy="git clone https://github.com/SlashImagine/voiceprint">Copy</button>
+            <code>$ git clone https://github.com/SlashImagine/tonethief</code>
+            <button class="copy-btn" data-copy="git clone https://github.com/SlashImagine/tonethief">Copy</button>
           </div>
           <div class="code-block" style="margin-top: 8px">
             <code>$ node bin/cli.js https://yourbrand.com --voice</code>
@@ -226,12 +226,12 @@
   <footer>
     <div class="footer-inner">
       <div class="footer-left">
-        <span class="logo">voiceprint</span>
+        <span class="logo">tonethief</span>
         <span class="footer-meta">MIT License · Made by <a href="https://admachine.xyz" target="_blank">Ad Machine</a></span>
       </div>
       <div class="footer-right">
         <span class="footer-line">Zero APIs. Zero bullshit.</span>
-        <a href="https://github.com/SlashImagine/voiceprint" target="_blank" class="footer-gh">GitHub →</a>
+        <a href="https://github.com/SlashImagine/tonethief" target="_blank" class="footer-gh">GitHub →</a>
       </div>
     </div>
   </footer>
