@@ -1,9 +1,9 @@
-/* ── voiceprint landing — interactions ── */
+/* ── tonethief landing — interactions ── */
 
 // Terminal typewriter
 const SEQUENCES = [
   {
-    cmd: "$ npx voiceprint https://liquiddeath.com",
+    cmd: "$ npx tonethief https://liquiddeath.com",
     lines: [
       "",
       "  🎙️  Brand Voice Profile: Liquid Death",
@@ -27,7 +27,7 @@ const SEQUENCES = [
     }
   },
   {
-    cmd: "$ npx voiceprint https://stripe.com --analytics",
+    cmd: "$ npx tonethief https://stripe.com --analytics",
     lines: [
       "",
       "  🎙️  Brand Voice Profile: Stripe",
@@ -49,7 +49,7 @@ const SEQUENCES = [
     }
   },
   {
-    cmd: "$ npx voiceprint compare stripe.com liquiddeath.com",
+    cmd: "$ npx tonethief compare stripe.com liquiddeath.com",
     lines: [
       "",
       "  ⚔️  Brand Voice Comparison",
